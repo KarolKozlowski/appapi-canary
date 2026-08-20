@@ -1,8 +1,14 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler
+from socketserver import UnixStreamServer
+from pathlib import Path
 import json
+import os
+
+SOCKET_PATH = "/tmp/exapp.sock"
+
 
 class Handler(BaseHTTPRequestHandler):
-    def reply(self, payload):
+    def reply(self, payload: dict[str, str]) -> None:
         data = json.dumps(payload).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -10,19 +16,31 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         if self.path == "/heartbeat":
-            return self.reply({"status": "ok"})
+            self.reply({"status": "ok"})
+            return
+
         self.send_response(404)
         self.end_headers()
 
-    def do_POST(self):
+    def do_POST(self) -> None:
         if self.path in ("/init", "/enabled"):
-            return self.reply({"status": "ok"})
+            self.reply({"status": "ok"})
+            return
+
         self.send_response(404)
         self.end_headers()
 
     def log_message(self, format: str, *args: object) -> None:
         pass
 
-HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+
+try:
+    Path(SOCKET_PATH).unlink()
+except FileNotFoundError:
+    pass
+
+server = UnixStreamServer(SOCKET_PATH, Handler)
+os.chmod(SOCKET_PATH, 0o666)
+server.serve_forever()
