@@ -18,7 +18,17 @@
     <docker-install>
       <registry>git.dotnot.pl</registry>
       <image>karol.kozlowski/appapi-canary</image>
-      <image-tag>latest</image-tag>
+      <image-tag>v1.0.0</image-tag>
     </docker-install>
+
+    <routes>
+      <route>
+      <url>/heartbeat</url>
+      <verb>GET</verb>
+      <access_level>PUBLIC</access_level>
+      <headers_to_exclude>[]</headers_to_exclude>
+      <bruteforce_protection>[]</bruteforce_protection>
+      </route>
+    </routes>
   </external-app>
 </info>
