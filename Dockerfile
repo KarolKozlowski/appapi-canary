@@ -1,6 +1,6 @@
 FROM python:3.13-alpine
 
-RUN apk add --no-cache curl bash
+RUN apk add --no-cache curl bash frp
 
 COPY start.sh /start.sh
 COPY server.py /server.py
