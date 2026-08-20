@@ -20,14 +20,19 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/heartbeat":
             self.reply({"status": "ok"})
             return
-
-        self.send_response(404)
-        self.end_headers()
+        self.send_error(404)
 
     def do_POST(self) -> None:
-        if self.path in ("/init", "/enabled"):
+        if self.path == "/init":
             self.reply({"status": "ok"})
             return
+        self.send_error(404)
+
+    def do_PUT(self) -> None:
+        if self.path.startswith("/enabled"):
+            self.reply({"status": "ok"})
+            return
+        self.send_error(404)
 
         self.send_response(404)
         self.end_headers()
