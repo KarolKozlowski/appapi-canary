@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler
-from socketserver import UnixStreamServer
 from pathlib import Path
+from socketserver import UnixStreamServer
 import json
 import os
 
@@ -33,9 +33,6 @@ class Handler(BaseHTTPRequestHandler):
             self.reply({"status": "ok"})
             return
         self.send_error(404)
-
-        self.send_response(404)
-        self.end_headers()
 
     def log_message(self, format: str, *args: object) -> None:
         pass
