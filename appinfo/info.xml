@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+  <id>appapi_canary</id>
+  <name>AppAPI Canary</name>
+  <summary>Minimal AppAPI synthetic health check</summary>
+  <description>Returns HTTP 200 from the AppAPI lifecycle endpoints.</description>
+  <version>1.0.0</version>
+  <licence>AGPL-3.0-or-later</licence>
+  <author>Karol Kozłowski</author>
+  <namespace>AppApiCanary</namespace>
+
+  <dependencies>
+    <nextcloud min-version="30" max-version="34"/>
+  </dependencies>
+
+  <external-app>
+    <docker-install>
+      <registry>git.dotnot.pl</registry>
+      <image>karol.kozlowski/appapi-canary</image>
+      <image-tag>latest</image-tag>
+    </docker-install>
+  </external-app>
+</info>
