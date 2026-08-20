@@ -14,7 +14,11 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+
+        try:
+            self.wfile.write(data)
+        except BrokenPipeError:
+            pass
 
     def do_GET(self) -> None:
         if self.path == "/heartbeat":
