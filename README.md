@@ -76,11 +76,50 @@ The workflow expects repository secrets called `RELEASE_USER` and `RELEASE_SECRE
 
 ## Deploy with AppAPI
 
-1. Ensure AppAPI has a functioning Deploy Daemon.
-2. Push or release an image that the daemon can pull. The bundled app metadata points to `git.dotnot.pl/karol.kozlowski/appapi-canary:v1.0.0`.
-3. Register this repository/image as an ExApp using the AppAPI administration UI or `occ app_api:app:register`.
-4. Deploy and enable the ExApp.
-5. Use the AppAPI-proxied canary route, where available, or AppAPI's recorded heartbeat state as the monitoring target.
+This repository is designed to be deployed as a Nextcloud ExApp through AppAPI. The packaged metadata in `appinfo/info.xml` points to the image `git.dotnot.pl/karol.kozlowski/appapi-canary:v1.0.0`, so the normal flow is:
+
+1. Ensure the AppAPI Deploy Daemon is installed and running in the target Nextcloud instance.
+2. Build and push a release image that the daemon can pull:
+
+   ```bash
+   docker build -t git.dotnot.pl/karol.kozlowski/appapi-canary:v1.0.0 .
+   docker push git.dotnot.pl/karol.kozlowski/appapi-canary:v1.0.0
+   ```
+
+3. Register the AppAPI app in Nextcloud using the AppAPI administration UI or the CLI command below, run from the Nextcloud root:
+
+   ```bash
+   sudo -u www-data php occ app_api:app:register --info-xml /var/www/html/appapi-canary/info.xml appapi-canary
+   ```
+
+   Replace the path with the location of this repository on your server.
+4. Confirm the ExApp metadata matches the image tag you pushed; the default release target is a versioned tag such as `v1.0.0`, not `latest`.
+5. Deploy the ExApp and enable it from the AppAPI UI.
+6. Monitor the ExApp using the AppAPI-proxied canary route or the recorded heartbeat state in Nextcloud.
+
+### Direct Docker deployment
+
+If you want to run the canary outside the AppAPI UI, the container still needs the same runtime assumptions as the ExApp: it binds a Unix domain socket at `/tmp/exapp.sock` and optionally opens an FRP tunnel for the Deploy Daemon.
+
+```bash
+docker run -d --name appapi-canary \
+  -e APP_ID=appapi_canary \
+  -e APP_PORT=8080 \
+  -e HP_SHARED_KEY=your-shared-key \
+  -e HP_FRP_ADDRESS=deploy-daemon.example.com \
+  -e HP_FRP_PORT=7000 \
+  -v /path/to/frp-certs:/certs/frp:ro \
+  git.dotnot.pl/karol.kozlowski/appapi-canary:v1.0.0
+```
+
+The `HP_*` variables are optional. If `HP_SHARED_KEY` is not set, the container simply runs the Python ExApp without starting the FRP client. If `/certs/frp` exists, the startup script automatically configures TLS for `frpc` using the `client.crt`, `client.key`, and `ca.crt` files in that directory.
+
+### Deployment checklist
+
+- The image must be reachable by the AppAPI Deploy Daemon.
+- The ExApp must expose the health endpoint at `/heartbeat` and return `200 {"status":"ok"}`.
+- AppAPI expects the daemon to connect to the Unix socket at `/tmp/exapp.sock`.
+- For production deployments, prefer a versioned tag like `v1.2.3` instead of floating tags such as `latest`.
 
 Use a versioned tag such as `v1.0.0` rather than `latest` for a stable deployment target.
 
